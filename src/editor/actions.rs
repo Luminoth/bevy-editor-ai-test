@@ -107,6 +107,7 @@ pub fn handle_add_component_confirm(
     }
 }
 
+
 struct AddComponentCommand {
     entity: Entity,
     type_id: std::any::TypeId,
@@ -125,4 +126,63 @@ impl Command for AddComponentCommand {
              info!("Added component: {:?}", registration.type_info().type_path());
          }
     }
+}
+
+pub struct PropertyChangeCommand {
+    pub entity: Entity,
+    pub component_type_id: std::any::TypeId,
+    pub field_name: String,
+    pub new_value: String,
+}
+
+impl Command for PropertyChangeCommand {
+    fn apply(self, world: &mut World) {
+        use bevy::reflect::ReflectMut;
+        let type_registry = world.resource::<AppTypeRegistry>().clone();
+        let type_registry = type_registry.read();
+
+        if let Some(registration) = type_registry.get(self.component_type_id)
+            && let Some(reflect_component) = registration.data::<ReflectComponent>()
+        {
+             // We need to get the component mutably.
+             // reflect_component.reflect_mut does that but returns ReflectMut.
+             // We need to work with it.
+
+             if let Some(mut component_reflect) = reflect_component.reflect_mut(world.entity_mut(self.entity))
+                 && let ReflectMut::Struct(s) = component_reflect.reflect_mut()
+                 && let Some(field) = s.field_mut(&self.field_name)
+             {
+                 try_apply_value(field, &self.new_value);
+             }
+        }
+    }
+}
+
+// Helper to attempt to parse string into the field
+fn try_apply_value(field: &mut dyn bevy::reflect::PartialReflect, value: &str) {
+    // Try some common types
+    if let Some(v) = field.try_downcast_mut::<f32>() {
+        if let Ok(parsed) = value.parse::<f32>() {
+            *v = parsed;
+        }
+    } else if let Some(v) = field.try_downcast_mut::<f64>() {
+        if let Ok(parsed) = value.parse::<f64>() {
+            *v = parsed;
+        }
+    } else if let Some(v) = field.try_downcast_mut::<String>() {
+        *v = value.to_string();
+    } else if let Some(v) = field.try_downcast_mut::<bool>() {
+        if let Ok(parsed) = value.parse::<bool>() {
+            *v = parsed;
+        }
+    } else if let Some(v) = field.try_downcast_mut::<usize>() {
+        if let Ok(parsed) = value.parse::<usize>() {
+            *v = parsed;
+        }
+    } else if let Some(v) = field.try_downcast_mut::<i32>()
+        && let Ok(parsed) = value.parse::<i32>()
+    {
+        *v = parsed;
+    }
+    // Add more types as needed (Vec2, Vec3 etc require more complex parsing)
 }

@@ -1,8 +1,10 @@
 use bevy::prelude::*;
 
+
 #[derive(Resource, Default)]
 pub struct EditorState {
     pub selected_entity: Option<Entity>,
+    pub focused_input: Option<Entity>,
 }
 
 #[derive(Resource, Default)]

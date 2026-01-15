@@ -53,5 +53,14 @@ pub struct RemoveComponentButton(pub String);
 #[derive(Component)]
 pub struct ComponentSearchInput;
 
+
 #[derive(Component)]
 pub struct ComponentAddButton(pub String);
+
+#[derive(Component)]
+pub struct PropertyInput {
+    pub entity: Entity,
+    pub component_type_id: std::any::TypeId,
+    pub field_name: String,
+    pub current_value: String,
+}
