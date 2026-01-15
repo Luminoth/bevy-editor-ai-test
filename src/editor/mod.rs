@@ -39,6 +39,7 @@ impl Plugin for EditorPlugin {
            ))
            .init_resource::<menu::LastSavedScene>()
            .add_systems(Update, inspector::inspector_ui_system)
+           .add_systems(Update, camera::editor_camera_controls)
            .add_systems(PostUpdate, (menu::save_system, menu::save_to_file_system));
     }
 }
