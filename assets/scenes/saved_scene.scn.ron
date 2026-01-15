@@ -1,4 +1,569 @@
 (
   resources: {},
-  entities: {},
+  entities: {
+    4294967260: (
+      components: {
+        "bevy_camera::primitives::CubemapFrusta": (),
+        "bevy_camera::visibility::CubemapVisibleEntities": (),
+        "bevy_camera::visibility::InheritedVisibility": (true),
+        "bevy_camera::visibility::ViewVisibility": (3),
+        "bevy_camera::visibility::Visibility": Inherited,
+        "bevy_light::point_light::PointLight": (
+          color: LinearRgba((
+            red: 1.0,
+            green: 1.0,
+            blue: 1.0,
+            alpha: 1.0,
+          )),
+          intensity: 1000000.0,
+          range: 20.0,
+          radius: 0.0,
+          shadows_enabled: true,
+          affects_lightmapped_mesh_diffuse: true,
+          shadow_depth_bias: 0.08,
+          shadow_normal_bias: 0.6,
+          shadow_map_near_z: 0.1,
+        ),
+        "bevy_render::sync_world::RenderEntity": (4294967292),
+        "bevy_render::sync_world::SyncToRenderWorld": (),
+        "bevy_transform::components::global_transform::GlobalTransform": ((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 4.0, 8.0, 4.0)),
+        "bevy_transform::components::transform::Transform": (
+          translation: (4.0, 8.0, 4.0),
+          rotation: (0.0, 0.0, 0.0, 1.0),
+          scale: (1.0, 1.0, 1.0),
+        ),
+        "bevy_transform::components::transform::TransformTreeChanged": (),
+      },
+    ),
+    4294967261: (
+      components: {
+        "bevy_camera::primitives::Aabb": (
+          center: (0.0, 0.0, 0.0),
+          half_extents: (0.5, 0.5, 0.5),
+        ),
+        "bevy_camera::visibility::InheritedVisibility": (true),
+        "bevy_camera::visibility::ViewVisibility": (3),
+        "bevy_camera::visibility::Visibility": Inherited,
+        "bevy_transform::components::global_transform::GlobalTransform": ((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.5, 0.0)),
+        "bevy_transform::components::transform::Transform": (
+          translation: (0.0, 0.5, 0.0),
+          rotation: (0.0, 0.0, 0.0, 1.0),
+          scale: (1.0, 1.0, 1.0),
+        ),
+        "bevy_transform::components::transform::TransformTreeChanged": (),
+      },
+    ),
+    4294967267: (
+      components: {
+        "bevy_camera::primitives::Aabb": (
+          center: (0.0, 0.0, 0.0),
+          half_extents: (2.5, 0.0, 2.5),
+        ),
+        "bevy_camera::visibility::InheritedVisibility": (true),
+        "bevy_camera::visibility::ViewVisibility": (3),
+        "bevy_camera::visibility::Visibility": Inherited,
+        "bevy_transform::components::global_transform::GlobalTransform": ((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0)),
+        "bevy_transform::components::transform::Transform": (
+          translation: (0.0, 0.0, 0.0),
+          rotation: (0.0, 0.0, 0.0, 1.0),
+          scale: (1.0, 1.0, 1.0),
+        ),
+        "bevy_transform::components::transform::TransformTreeChanged": (),
+      },
+    ),
+    4294967276: (
+      components: {
+        "bevy_picking::pointer::PointerId": Mouse,
+        "bevy_picking::pointer::PointerInteraction": (
+          sorted_entities: [
+            (4294967274, (
+              camera: 4294967259,
+              depth: 0.0,
+              position: Some((-0.02573543, -0.1568629, 0.0)),
+              normal: None,
+            )),
+          ],
+        ),
+        "bevy_picking::pointer::PointerLocation": (),
+        "bevy_picking::pointer::PointerPress": (
+          primary: true,
+          secondary: false,
+          middle: false,
+        ),
+      },
+    ),
+    4294967282: (
+      components: {
+        "bevy_ecs::name::Name": "Xbox Series Controller",
+        "bevy_input::gamepad::Gamepad": (
+          vendor_id: Some(1118),
+          product_id: Some(2834),
+          digital: (
+            pressed: [],
+            just_pressed: [],
+            just_released: [],
+          ),
+          analog: (
+            axis_data: {
+              Button(RightThumb): 0.0,
+              Button(RightTrigger): 0.0,
+              Button(Select): 0.0,
+              Button(C): 0.0,
+              Button(LeftTrigger): 0.0,
+              Button(South): 0.0,
+              Button(North): 0.0,
+              Axis(RightStickX): 0.0,
+              Axis(LeftStickY): 0.0,
+              Button(DPadLeft): 0.0,
+              Axis(RightZ): 0.0,
+              Button(LeftThumb): 0.0,
+              Button(DPadUp): 0.0,
+              Button(RightTrigger2): 0.0,
+              Button(Start): 0.0,
+              Button(Z): 0.0,
+              Button(LeftTrigger2): 0.0,
+              Button(East): 0.0,
+              Axis(LeftStickX): 0.0,
+              Button(West): 0.0,
+              Axis(LeftZ): 0.0,
+              Axis(RightStickY): 0.0,
+              Button(DPadDown): 0.0,
+              Button(DPadRight): 0.0,
+              Button(Mode): 0.0,
+            },
+          ),
+        ),
+        "bevy_input::gamepad::GamepadSettings": (
+          default_button_settings: (
+            press_threshold: 0.75,
+            release_threshold: 0.65,
+          ),
+          default_axis_settings: (
+            livezone_upperbound: 1.0,
+            deadzone_upperbound: 0.05,
+            deadzone_lowerbound: -0.05,
+            livezone_lowerbound: -1.0,
+            threshold: 0.01,
+          ),
+          default_button_axis_settings: (
+            high: 0.95,
+            low: 0.05,
+            threshold: 0.01,
+          ),
+          button_settings: {},
+          axis_settings: {},
+          button_axis_settings: {},
+        ),
+      },
+    ),
+    4294967283: (
+      components: {
+        "bevy_window::monitor::Monitor": (
+          name: Some("DP-2"),
+          physical_height: 2160,
+          physical_width: 3840,
+          physical_position: (3840, 0),
+          refresh_rate_millihertz: Some(59996),
+          scale_factor: 1.5,
+          video_modes: [
+            (
+              physical_size: (3840, 2160),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59996,
+            ),
+            (
+              physical_size: (3840, 2160),
+              bit_depth: 24,
+              refresh_rate_millihertz: 144003,
+            ),
+            (
+              physical_size: (3840, 2160),
+              bit_depth: 24,
+              refresh_rate_millihertz: 119910,
+            ),
+            (
+              physical_size: (3840, 2160),
+              bit_depth: 24,
+              refresh_rate_millihertz: 119879,
+            ),
+            (
+              physical_size: (3840, 2160),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59940,
+            ),
+            (
+              physical_size: (2560, 1440),
+              bit_depth: 24,
+              refresh_rate_millihertz: 143911,
+            ),
+            (
+              physical_size: (2560, 1440),
+              bit_depth: 24,
+              refresh_rate_millihertz: 119997,
+            ),
+            (
+              physical_size: (2560, 1440),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59950,
+            ),
+            (
+              physical_size: (1920, 1080),
+              bit_depth: 24,
+              refresh_rate_millihertz: 119878,
+            ),
+            (
+              physical_size: (1920, 1080),
+              bit_depth: 24,
+              refresh_rate_millihertz: 60000,
+            ),
+            (
+              physical_size: (1920, 1080),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59939,
+            ),
+            (
+              physical_size: (1920, 1080),
+              bit_depth: 24,
+              refresh_rate_millihertz: 50000,
+            ),
+            (
+              physical_size: (1680, 1050),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59954,
+            ),
+            (
+              physical_size: (1440, 900),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59887,
+            ),
+            (
+              physical_size: (1280, 1024),
+              bit_depth: 24,
+              refresh_rate_millihertz: 75024,
+            ),
+            (
+              physical_size: (1280, 1024),
+              bit_depth: 24,
+              refresh_rate_millihertz: 60019,
+            ),
+            (
+              physical_size: (1280, 960),
+              bit_depth: 24,
+              refresh_rate_millihertz: 60000,
+            ),
+            (
+              physical_size: (1280, 720),
+              bit_depth: 24,
+              refresh_rate_millihertz: 60000,
+            ),
+            (
+              physical_size: (1280, 720),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59943,
+            ),
+            (
+              physical_size: (1280, 720),
+              bit_depth: 24,
+              refresh_rate_millihertz: 50000,
+            ),
+            (
+              physical_size: (1152, 864),
+              bit_depth: 24,
+              refresh_rate_millihertz: 75000,
+            ),
+            (
+              physical_size: (1024, 768),
+              bit_depth: 24,
+              refresh_rate_millihertz: 119988,
+            ),
+            (
+              physical_size: (1024, 768),
+              bit_depth: 24,
+              refresh_rate_millihertz: 75028,
+            ),
+            (
+              physical_size: (1024, 768),
+              bit_depth: 24,
+              refresh_rate_millihertz: 70069,
+            ),
+            (
+              physical_size: (1024, 768),
+              bit_depth: 24,
+              refresh_rate_millihertz: 60003,
+            ),
+            (
+              physical_size: (800, 600),
+              bit_depth: 24,
+              refresh_rate_millihertz: 75000,
+            ),
+            (
+              physical_size: (800, 600),
+              bit_depth: 24,
+              refresh_rate_millihertz: 72187,
+            ),
+            (
+              physical_size: (800, 600),
+              bit_depth: 24,
+              refresh_rate_millihertz: 60316,
+            ),
+            (
+              physical_size: (800, 600),
+              bit_depth: 24,
+              refresh_rate_millihertz: 56250,
+            ),
+            (
+              physical_size: (720, 576),
+              bit_depth: 24,
+              refresh_rate_millihertz: 50000,
+            ),
+            (
+              physical_size: (720, 480),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59940,
+            ),
+            (
+              physical_size: (640, 480),
+              bit_depth: 24,
+              refresh_rate_millihertz: 75000,
+            ),
+            (
+              physical_size: (640, 480),
+              bit_depth: 24,
+              refresh_rate_millihertz: 72808,
+            ),
+            (
+              physical_size: (640, 480),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59940,
+            ),
+            (
+              physical_size: (640, 480),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59928,
+            ),
+          ],
+        ),
+      },
+    ),
+    4294967284: (
+      components: {
+        "bevy_window::monitor::Monitor": (
+          name: Some("DP-4"),
+          physical_height: 2160,
+          physical_width: 3840,
+          physical_position: (0, 0),
+          refresh_rate_millihertz: Some(59996),
+          scale_factor: 1.5,
+          video_modes: [
+            (
+              physical_size: (3840, 2160),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59996,
+            ),
+            (
+              physical_size: (3840, 2160),
+              bit_depth: 24,
+              refresh_rate_millihertz: 144003,
+            ),
+            (
+              physical_size: (3840, 2160),
+              bit_depth: 24,
+              refresh_rate_millihertz: 119910,
+            ),
+            (
+              physical_size: (3840, 2160),
+              bit_depth: 24,
+              refresh_rate_millihertz: 119879,
+            ),
+            (
+              physical_size: (3840, 2160),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59940,
+            ),
+            (
+              physical_size: (2560, 1440),
+              bit_depth: 24,
+              refresh_rate_millihertz: 143911,
+            ),
+            (
+              physical_size: (2560, 1440),
+              bit_depth: 24,
+              refresh_rate_millihertz: 119997,
+            ),
+            (
+              physical_size: (2560, 1440),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59950,
+            ),
+            (
+              physical_size: (1920, 1080),
+              bit_depth: 24,
+              refresh_rate_millihertz: 119878,
+            ),
+            (
+              physical_size: (1920, 1080),
+              bit_depth: 24,
+              refresh_rate_millihertz: 60000,
+            ),
+            (
+              physical_size: (1920, 1080),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59939,
+            ),
+            (
+              physical_size: (1920, 1080),
+              bit_depth: 24,
+              refresh_rate_millihertz: 50000,
+            ),
+            (
+              physical_size: (1680, 1050),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59954,
+            ),
+            (
+              physical_size: (1440, 900),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59887,
+            ),
+            (
+              physical_size: (1280, 1024),
+              bit_depth: 24,
+              refresh_rate_millihertz: 75024,
+            ),
+            (
+              physical_size: (1280, 1024),
+              bit_depth: 24,
+              refresh_rate_millihertz: 60019,
+            ),
+            (
+              physical_size: (1280, 960),
+              bit_depth: 24,
+              refresh_rate_millihertz: 60000,
+            ),
+            (
+              physical_size: (1280, 720),
+              bit_depth: 24,
+              refresh_rate_millihertz: 60000,
+            ),
+            (
+              physical_size: (1280, 720),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59943,
+            ),
+            (
+              physical_size: (1280, 720),
+              bit_depth: 24,
+              refresh_rate_millihertz: 50000,
+            ),
+            (
+              physical_size: (1152, 864),
+              bit_depth: 24,
+              refresh_rate_millihertz: 75000,
+            ),
+            (
+              physical_size: (1024, 768),
+              bit_depth: 24,
+              refresh_rate_millihertz: 119988,
+            ),
+            (
+              physical_size: (1024, 768),
+              bit_depth: 24,
+              refresh_rate_millihertz: 75028,
+            ),
+            (
+              physical_size: (1024, 768),
+              bit_depth: 24,
+              refresh_rate_millihertz: 70069,
+            ),
+            (
+              physical_size: (1024, 768),
+              bit_depth: 24,
+              refresh_rate_millihertz: 60003,
+            ),
+            (
+              physical_size: (800, 600),
+              bit_depth: 24,
+              refresh_rate_millihertz: 75000,
+            ),
+            (
+              physical_size: (800, 600),
+              bit_depth: 24,
+              refresh_rate_millihertz: 72187,
+            ),
+            (
+              physical_size: (800, 600),
+              bit_depth: 24,
+              refresh_rate_millihertz: 60316,
+            ),
+            (
+              physical_size: (800, 600),
+              bit_depth: 24,
+              refresh_rate_millihertz: 56250,
+            ),
+            (
+              physical_size: (720, 576),
+              bit_depth: 24,
+              refresh_rate_millihertz: 50000,
+            ),
+            (
+              physical_size: (720, 480),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59940,
+            ),
+            (
+              physical_size: (640, 480),
+              bit_depth: 24,
+              refresh_rate_millihertz: 75000,
+            ),
+            (
+              physical_size: (640, 480),
+              bit_depth: 24,
+              refresh_rate_millihertz: 72808,
+            ),
+            (
+              physical_size: (640, 480),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59940,
+            ),
+            (
+              physical_size: (640, 480),
+              bit_depth: 24,
+              refresh_rate_millihertz: 59928,
+            ),
+          ],
+        ),
+        "bevy_window::monitor::PrimaryMonitor": (),
+      },
+    ),
+    4294967285: (
+      components: {},
+    ),
+    4294967286: (
+      components: {},
+    ),
+    4294967287: (
+      components: {},
+    ),
+    4294967288: (
+      components: {},
+    ),
+    4294967289: (
+      components: {},
+    ),
+    4294967290: (
+      components: {},
+    ),
+    4294967291: (
+      components: {},
+    ),
+    4294967292: (
+      components: {},
+    ),
+    4294967293: (
+      components: {},
+    ),
+    4294967294: (
+      components: {},
+    ),
+  },
 )

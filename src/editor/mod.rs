@@ -37,7 +37,8 @@ impl Plugin for EditorPlugin {
                 actions::handle_remove_component,
                 actions::handle_add_component_confirm,
            ))
+           .init_resource::<menu::LastSavedScene>()
            .add_systems(Update, inspector::inspector_ui_system)
-           .add_systems(PostUpdate, menu::save_system);
+           .add_systems(PostUpdate, (menu::save_system, menu::save_to_file_system));
     }
 }

@@ -84,6 +84,9 @@ pub struct SaveRequest;
 #[derive(Resource)]
 pub struct LoadRequest;
 
+#[derive(Resource, Default)]
+pub struct LastSavedScene(pub String);
+
 pub fn save_system(
     world: &mut World,
 ) {
@@ -128,29 +131,53 @@ pub fn save_system(
     use bevy::scene::DynamicSceneBuilder;
 
     // Correctly chain the builder
-    let scene = DynamicSceneBuilder::from_world(world)
+    let mut scene = DynamicSceneBuilder::from_world(world)
         .extract_entities(entities_to_save.into_iter())
         .build();
 
-    // Serialize
-    let type_registry = world.resource::<AppTypeRegistry>();
-    let type_registry = type_registry.read();
-    let serialized_scene = match scene.serialize(&type_registry) {
-        Ok(s) => s,
-        Err(e) => {
-            error!("Failed to serialize scene: {}", e);
-            return;
+    // Filter out problem components directly from the scene data
+    for entity in &mut scene.entities {
+        entity.components.retain(|component| {
+            let name = component.reflect_type_path();
+            if name.contains("VisibilityClass") ||
+               name.contains("Mesh3d") ||
+               name.contains("MeshMaterial3d") {
+                info!("Removing component from scene: {}", name);
+                return false;
+            }
+            true
+        });
+    }
+
+    // Serialize with the default registry
+    let serialized_scene = {
+        let type_registry = world.resource::<AppTypeRegistry>();
+        let type_registry = type_registry.read();
+
+        match scene.serialize(&type_registry) {
+            Ok(s) => s,
+            Err(e) => {
+                error!("Failed to serialize scene: {}", e);
+                return;
+            }
         }
     };
 
-    // Write to file
-    let _ = std::fs::create_dir_all("assets/scenes");
-    let path = "assets/scenes/saved_scene.scn.ron";
-    if let Ok(mut file) = File::create(path) {
-        let _ = file.write_all(serialized_scene.as_bytes());
-        info!("Scene saved to {}", path);
-    } else {
-        error!("Failed to create scene file");
+    world.insert_resource(LastSavedScene(serialized_scene));
+}
+
+pub fn save_to_file_system(
+    saved_scene: Res<LastSavedScene>,
+) {
+    if saved_scene.is_changed() {
+        let _ = std::fs::create_dir_all("assets/scenes");
+        let path = "assets/scenes/saved_scene.scn.ron";
+        if let Ok(mut file) = File::create(path) {
+            let _ = file.write_all(saved_scene.0.as_bytes());
+            info!("Scene saved to {}", path);
+        } else {
+            error!("Failed to create scene file");
+        }
     }
 }
 
