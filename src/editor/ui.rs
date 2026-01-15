@@ -9,48 +9,130 @@ pub fn setup_editor_ui(mut commands: Commands) {
         Node {
              width: Val::Percent(100.0),
              height: Val::Percent(100.0),
-             justify_content: JustifyContent::SpaceBetween,
+             flex_direction: FlexDirection::Column,
              ..default()
         },
         EditorRoot,
         Pickable::IGNORE, // Don't block picking for the scene unless hitting UI
     ))
     .with_children(|parent| {
-        // Left Panel (Hierarchy)
+        // Menu Bar
+        // Inline menu setup to avoid ChildBuilder type naming issues
         parent.spawn((
-            sidebar_style(),
+            menu_bar_style(),
+            MenuBar,
             BackgroundColor(PANEL_COLOR),
-            HierarchyPanel,
-        )).with_children(|p| {
-            p.spawn((
-                Text::new("Hierarchy"),
-                TextFont::default(),
-                TextColor(HEADER_COLOR),
-                BackgroundColor(TEXT_COLOR) // Invert for header bg?
-            ));
-            // List container
-            p.spawn(Node {
-                flex_direction: FlexDirection::Column,
-                width: Val::Percent(100.0),
-                ..default()
+        )).with_children(|menu| {
+            // File Button
+            menu.spawn((
+                Button,
+                menu_button_style(),
+                BackgroundColor(BUTTON_COLOR_NORMAL),
+                FileMenuButton,
+            )).with_children(|btn| {
+                btn.spawn((
+                    Text::new("File"),
+                    TextFont::default(),
+                    TextColor(TEXT_COLOR),
+                ));
+            });
+
+            // Dropdown Logic (Initially Hidden)
+            menu.spawn((
+                dropdown_style(),
+                BackgroundColor(PANEL_COLOR),
+                FileMenuDropdown,
+                Visibility::Hidden,
+                GlobalZIndex(10), // Ensure it's on top
+            )).with_children(|dropdown| {
+                // Save
+                dropdown.spawn((
+                    Button,
+                    menu_button_style(),
+                    BackgroundColor(BUTTON_COLOR_NORMAL),
+                    MenuButtonAction { action: MenuAction::Save },
+                )).with_children(|btn| {
+                    btn.spawn((
+                        Text::new("Save"),
+                        TextFont::default(),
+                        TextColor(TEXT_COLOR),
+                    ));
+                });
+
+                // Load
+                dropdown.spawn((
+                    Button,
+                    menu_button_style(),
+                    BackgroundColor(BUTTON_COLOR_NORMAL),
+                    MenuButtonAction { action: MenuAction::Load },
+                )).with_children(|btn| {
+                    btn.spawn((
+                        Text::new("Load"),
+                        TextFont::default(),
+                        TextColor(TEXT_COLOR),
+                    ));
+                });
+
+                // Exit
+                dropdown.spawn((
+                    Button,
+                    menu_button_style(),
+                    BackgroundColor(BUTTON_COLOR_NORMAL),
+                    MenuButtonAction { action: MenuAction::Exit },
+                )).with_children(|btn| {
+                    btn.spawn((
+                        Text::new("Exit"),
+                        TextFont::default(),
+                        TextColor(TEXT_COLOR),
+                    ));
+                });
             });
         });
 
-        // Viewport (Invisible placeholder for scene interaction area)
-        parent.spawn((
-            viewport_style(),
-            ViewportPanel,
-        ));
+        // Main Content Area
+        parent.spawn(Node {
+             width: Val::Percent(100.0),
+             flex_grow: 1.0,
+             flex_direction: FlexDirection::Row,
+             justify_content: JustifyContent::SpaceBetween,
+             ..default()
+        }).with_children(|main_parent| {
+             // Left Panel (Hierarchy)
+             main_parent.spawn((
+                 sidebar_style(),
+                 BackgroundColor(PANEL_COLOR),
+                 HierarchyPanel,
+             )).with_children(|p| {
+                 p.spawn((
+                     Text::new("Hierarchy"),
+                     TextFont::default(),
+                     TextColor(HEADER_COLOR),
+                     BackgroundColor(TEXT_COLOR) // Invert for header bg?
+                 ));
+                 // List container
+                 p.spawn(Node {
+                     flex_direction: FlexDirection::Column,
+                     width: Val::Percent(100.0),
+                     ..default()
+                 });
+             });
 
-        // Right Panel (Inspector)
-        parent.spawn((
-            sidebar_style(),
-            BackgroundColor(PANEL_COLOR),
-            InspectorPanel,
-        )).with_children(|p| {
-             p.spawn((
-                Text::new("Inspector"),
-            ));
+             // Viewport (Invisible placeholder for scene interaction area)
+             main_parent.spawn((
+                 viewport_style(),
+                 ViewportPanel,
+             ));
+
+             // Right Panel (Inspector)
+             main_parent.spawn((
+                 sidebar_style(),
+                 BackgroundColor(PANEL_COLOR),
+                 InspectorPanel,
+             )).with_children(|p| {
+                  p.spawn((
+                     Text::new("Inspector"),
+                 ));
+             });
         });
     });
 }

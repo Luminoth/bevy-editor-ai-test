@@ -16,3 +16,24 @@ pub struct ViewportPanel;
 pub struct HierarchyEntityRow {
     pub entity: Entity,
 }
+
+#[derive(Component)]
+pub struct MenuBar;
+
+#[derive(Component)]
+pub struct FileMenuButton;
+
+#[derive(Component)]
+pub struct FileMenuDropdown;
+
+#[derive(Component)]
+pub struct MenuButtonAction {
+    pub action: MenuAction,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum MenuAction {
+    Save,
+    Load,
+    Exit,
+}

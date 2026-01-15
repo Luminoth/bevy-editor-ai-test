@@ -52,8 +52,41 @@ pub fn header_style() -> Node {
 
 pub fn text_style(asset_server: &AssetServer) -> TextFont {
     TextFont {
-        font: asset_server.load("fonts/FiraSans-Bold.ttf"), // Default bevy font usually
+        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
         font_size: 14.0,
+        ..default()
+    }
+}
+
+pub fn menu_bar_style() -> Node {
+    Node {
+        width: Val::Percent(100.0),
+        height: Val::Px(25.0),
+        flex_direction: FlexDirection::Row,
+        align_items: AlignItems::Center,
+        justify_content: JustifyContent::FlexStart,
+        padding: UiRect::axes(Val::Px(5.0), Val::Px(0.0)),
+        ..default()
+    }
+}
+
+pub fn menu_button_style() -> Node {
+    Node {
+        padding: UiRect::all(Val::Px(5.0)),
+        justify_content: JustifyContent::Center,
+        align_items: AlignItems::Center,
+        ..default()
+    }
+}
+
+pub fn dropdown_style() -> Node {
+    Node {
+        position_type: PositionType::Absolute,
+        top: Val::Px(25.0),
+        left: Val::Px(0.0),
+        width: Val::Px(100.0),
+        flex_direction: FlexDirection::Column,
+        border: UiRect::all(Val::Px(1.0)),
         ..default()
     }
 }
