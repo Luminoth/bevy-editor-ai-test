@@ -1,7 +1,7 @@
 #![deny(warnings)]
 
 use bevy::prelude::*;
-mod editor;
+use bevy_editor_ai_test::editor;
 
 fn main() {
     App::new()

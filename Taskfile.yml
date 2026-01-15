@@ -1,0 +1,7 @@
+version: '3'
+
+tasks:
+  run:
+    desc: Run the scene editor example
+    cmds:
+      - cargo run --example scene_editor
