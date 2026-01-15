@@ -165,10 +165,8 @@ impl Command for PropertyChangeCommand {
                  applied = try_apply_value(field, &self.new_value);
              }
 
-             if applied {
-                 if let Some(mut info) = world.get_resource_mut::<SceneInfo>() {
-                     info.is_dirty = true;
-                 }
+             if applied && let Some(mut info) = world.get_resource_mut::<SceneInfo>() {
+                 info.is_dirty = true;
              }
         }
     }
