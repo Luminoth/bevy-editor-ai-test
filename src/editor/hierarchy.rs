@@ -21,6 +21,7 @@ type AddEntityInteractionQuery<'w, 's> = Query<'w, 's,
 pub fn handle_hierarchy_actions(
     interaction_query: AddEntityInteractionQuery,
     mut commands: Commands,
+    mut scene_info: Option<ResMut<crate::editor::menu::SceneInfo>>,
 ) {
     for (interaction, _) in interaction_query.iter() {
         if *interaction == Interaction::Pressed {
@@ -29,6 +30,10 @@ pub fn handle_hierarchy_actions(
                 Transform::default(),
                 Visibility::default(),
             ));
+
+            if let Some(info) = scene_info.as_mut() {
+                info.is_dirty = true;
+            }
         }
     }
 }

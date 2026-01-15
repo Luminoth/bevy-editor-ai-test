@@ -59,6 +59,20 @@ pub fn setup_editor_ui(mut commands: Commands) {
                     ));
                 });
 
+                // Save As
+                dropdown.spawn((
+                    Button,
+                    menu_button_style(),
+                    BackgroundColor(BUTTON_COLOR_NORMAL),
+                    MenuButtonAction { action: MenuAction::SaveAs },
+                )).with_children(|btn| {
+                    btn.spawn((
+                        Text::new("Save As"),
+                        TextFont::default(),
+                        TextColor(TEXT_COLOR),
+                    ));
+                });
+
                 // Load
                 dropdown.spawn((
                     Button,

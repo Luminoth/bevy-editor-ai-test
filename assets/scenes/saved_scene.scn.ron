@@ -1,7 +1,7 @@
 (
   resources: {},
   entities: {
-    4294967260: (
+    4294967258: (
       components: {
         "bevy_camera::primitives::CubemapFrusta": (),
         "bevy_camera::visibility::CubemapVisibleEntities": (),
@@ -35,7 +35,7 @@
         "bevy_transform::components::transform::TransformTreeChanged": (),
       },
     ),
-    4294967261: (
+    4294967259: (
       components: {
         "bevy_camera::primitives::Aabb": (
           center: (0.0, 0.0, 0.0),
@@ -53,7 +53,7 @@
         "bevy_transform::components::transform::TransformTreeChanged": (),
       },
     ),
-    4294967267: (
+    4294967270: (
       components: {
         "bevy_camera::primitives::Aabb": (
           center: (0.0, 0.0, 0.0),
@@ -77,9 +77,9 @@
         "bevy_picking::pointer::PointerInteraction": (
           sorted_entities: [
             (4294967274, (
-              camera: 4294967259,
+              camera: 4294967257,
               depth: 0.0,
-              position: Some((-0.02573543, -0.1568629, 0.0)),
+              position: Some((-0.025735643, 0.124182805, 0.0)),
               normal: None,
             )),
           ],

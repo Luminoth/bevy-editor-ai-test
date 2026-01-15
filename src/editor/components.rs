@@ -34,6 +34,7 @@ pub struct MenuButtonAction {
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum MenuAction {
     Save,
+    SaveAs,
     Load,
     Exit,
 }

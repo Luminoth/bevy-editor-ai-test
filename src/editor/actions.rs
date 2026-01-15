@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use super::resources::{EditorState, InspectorUiState};
 use super::components::*;
 use bevy::ecs::system::Command;
+use crate::editor::menu::SceneInfo;
 
 type DeleteEntityFilter = (Changed<Interaction>, With<DeleteEntityButton>);
 type AddComponentToggleFilter = (Changed<Interaction>, With<AddComponentButton>);
@@ -11,11 +12,13 @@ type ComponentAddConfirmFilter = (Changed<Interaction>, With<ComponentAddButton>
 pub fn handle_delete_entity(
     interaction_query: Query<(&Interaction, &DeleteEntityButton), DeleteEntityFilter>,
     mut commands: Commands,
-    current_state: Res<EditorState>,
+    current_state: ResMut<EditorState>,
+    mut scene_info: ResMut<SceneInfo>,
 ) {
     for (interaction, _) in interaction_query.iter() {
         if *interaction == Interaction::Pressed && let Some(entity) = current_state.selected_entity {
             commands.entity(entity).despawn();
+            scene_info.is_dirty = true;
             // Deselect handled by selection logic or we can clear it
         }
     }
@@ -78,6 +81,9 @@ impl Command for RemoveComponentCommand {
          {
              reflect_component.remove(&mut world.entity_mut(self.entity));
              info!("Removed component: {}", self.component_name);
+             if let Some(mut info) = world.get_resource_mut::<SceneInfo>() {
+                 info.is_dirty = true;
+             }
          }
     }
 }
@@ -124,6 +130,9 @@ impl Command for AddComponentCommand {
              let default_val = reflect_default.default();
              reflect_component.insert(&mut world.entity_mut(self.entity), default_val.as_ref(), &type_registry);
              info!("Added component: {:?}", registration.type_info().type_path());
+             if let Some(mut info) = world.get_resource_mut::<SceneInfo>() {
+                 info.is_dirty = true;
+             }
          }
     }
 }
@@ -148,41 +157,54 @@ impl Command for PropertyChangeCommand {
              // reflect_component.reflect_mut does that but returns ReflectMut.
              // We need to work with it.
 
+             let mut applied = false;
              if let Some(mut component_reflect) = reflect_component.reflect_mut(world.entity_mut(self.entity))
                  && let ReflectMut::Struct(s) = component_reflect.reflect_mut()
                  && let Some(field) = s.field_mut(&self.field_name)
              {
-                 try_apply_value(field, &self.new_value);
+                 applied = try_apply_value(field, &self.new_value);
+             }
+
+             if applied {
+                 if let Some(mut info) = world.get_resource_mut::<SceneInfo>() {
+                     info.is_dirty = true;
+                 }
              }
         }
     }
 }
 
 // Helper to attempt to parse string into the field
-fn try_apply_value(field: &mut dyn bevy::reflect::PartialReflect, value: &str) {
+fn try_apply_value(field: &mut dyn bevy::reflect::PartialReflect, value: &str) -> bool {
     // Try some common types
     if let Some(v) = field.try_downcast_mut::<f32>() {
         if let Ok(parsed) = value.parse::<f32>() {
             *v = parsed;
+            return true;
         }
     } else if let Some(v) = field.try_downcast_mut::<f64>() {
         if let Ok(parsed) = value.parse::<f64>() {
             *v = parsed;
+            return true;
         }
     } else if let Some(v) = field.try_downcast_mut::<String>() {
         *v = value.to_string();
+        return true;
     } else if let Some(v) = field.try_downcast_mut::<bool>() {
         if let Ok(parsed) = value.parse::<bool>() {
             *v = parsed;
+            return true;
         }
     } else if let Some(v) = field.try_downcast_mut::<usize>() {
         if let Ok(parsed) = value.parse::<usize>() {
             *v = parsed;
+            return true;
         }
     } else if let Some(v) = field.try_downcast_mut::<i32>()
         && let Ok(parsed) = value.parse::<i32>()
     {
         *v = parsed;
+        return true;
     }
-    // Add more types as needed (Vec2, Vec3 etc require more complex parsing)
+    false
 }

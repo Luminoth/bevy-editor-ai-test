@@ -38,8 +38,10 @@ impl Plugin for EditorPlugin {
                 actions::handle_add_component_confirm,
            ))
            .init_resource::<menu::LastSavedScene>()
+           .init_resource::<menu::SceneInfo>()
            .add_systems(Update, inspector::inspector_ui_system)
            .add_systems(Update, camera::editor_camera_controls)
+           .add_systems(Update, menu::update_window_title)
            .add_systems(PostUpdate, (menu::save_system, menu::save_to_file_system));
     }
 }

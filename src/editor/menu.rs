@@ -5,6 +5,13 @@ use bevy::prelude::*;
 use std::fs::File;
 use std::io::Write;
 use bevy::ecs::relationship::Relationship;
+use std::path::PathBuf;
+
+#[derive(Resource, Default)]
+pub struct SceneInfo {
+    pub file_path: Option<PathBuf>,
+    pub is_dirty: bool,
+}
 
 pub fn handle_file_menu_button(
     mut interaction_query: Query<
@@ -41,6 +48,7 @@ pub fn menu_action_system(
     >,
     mut commands: Commands,
     mut dropdown_query: Query<&mut Visibility, With<FileMenuDropdown>>,
+    mut scene_info: ResMut<SceneInfo>,
 ) {
     for (interaction, mut color, menu_action) in interaction_query.iter_mut() {
         match *interaction {
@@ -53,18 +61,45 @@ pub fn menu_action_system(
 
                 match menu_action.action {
                     MenuAction::Exit => {
-                        // Assuming Bevy 0.18 uses Observers or similar, and EventWriter is gone/changed.
-                        // Or AppExit is a resource? No.
-                        // Try triggering AppExit.
-                        // If trigger is not available, we might fail, but EventWriter failed harder.
-                        // If this fails, we will try `std::process::exit(0)`.
                         std::process::exit(0);
                     }
                     MenuAction::Save => {
-                        commands.insert_resource(SaveRequest);
+                         if scene_info.file_path.is_some() {
+                             commands.insert_resource(SaveRequest);
+                         } else {
+                             // Treat as Save As
+                             let dir = std::env::current_dir().unwrap_or_default();
+                             if let Some(path) = rfd::FileDialog::new()
+                                 .set_directory(&dir)
+                                 .add_filter("Scene", &["scn.ron"])
+                                 .save_file()
+                             {
+                                 scene_info.file_path = Some(path);
+                                 commands.insert_resource(SaveRequest);
+                             }
+                         }
+                    }
+                    MenuAction::SaveAs => {
+                        let dir = std::env::current_dir().unwrap_or_default();
+                        if let Some(path) = rfd::FileDialog::new()
+                            .set_directory(&dir)
+                            .add_filter("Scene", &["scn.ron"])
+                            .save_file()
+                        {
+                             scene_info.file_path = Some(path);
+                             commands.insert_resource(SaveRequest);
+                         }
                     }
                     MenuAction::Load => {
-                        commands.insert_resource(LoadRequest);
+                        let dir = std::env::current_dir().unwrap_or_default();
+                        if let Some(path) = rfd::FileDialog::new()
+                            .set_directory(&dir)
+                            .add_filter("Scene", &["scn.ron"])
+                            .pick_file()
+                        {
+                             scene_info.file_path = Some(path);
+                             commands.insert_resource(LoadRequest);
+                        }
                     }
                 }
             }
@@ -164,45 +199,110 @@ pub fn save_system(
     };
 
     world.insert_resource(LastSavedScene(serialized_scene));
+
+    // Reset dirty flag
+    if let Some(mut info) = world.get_resource_mut::<SceneInfo>() {
+        info.is_dirty = false;
+    }
 }
 
 pub fn save_to_file_system(
     saved_scene: Res<LastSavedScene>,
+    scene_info: Res<SceneInfo>,
 ) {
     if saved_scene.is_changed() {
         if saved_scene.0.is_empty() {
             return;
         }
-        let _ = std::fs::create_dir_all("assets/scenes");
-        let path = "assets/scenes/saved_scene.scn.ron";
-        if let Ok(mut file) = File::create(path) {
-            let _ = file.write_all(saved_scene.0.as_bytes());
-            info!("Scene saved to {}", path);
+
+        if let Some(path) = &scene_info.file_path {
+            if let Ok(mut file) = File::create(path) {
+                let _ = file.write_all(saved_scene.0.as_bytes());
+                info!("Scene saved to {:?}", path);
+            } else {
+                error!("Failed to create scene file at {:?}", path);
+            }
         } else {
-            error!("Failed to create scene file");
+            error!("Cannot save: No file path set in SceneInfo");
         }
     }
 }
 
 pub fn load_system(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
     mut scene_spawner: ResMut<SceneSpawner>,
     query: Query<Entity, (Without<EditorRoot>, Without<ChildOf>, Without<bevy::window::PrimaryWindow>, Without<crate::editor::camera::EditorCamera>)>,
     load_request: Option<Res<LoadRequest>>,
+    mut scene_info: ResMut<SceneInfo>,
+    type_registry: Res<AppTypeRegistry>,
+    mut dynamic_scene_assets: ResMut<Assets<DynamicScene>>,
 ) {
     if load_request.is_none() {
         return;
     }
+
+    // Need a path. Clone it to end the borrow of scene_info immediately.
+    let path = if let Some(p) = &scene_info.file_path {
+        p.clone()
+    } else {
+        error!("Cannot load: No file path set in SceneInfo");
+        commands.remove_resource::<LoadRequest>();
+        return;
+    };
 
     // Clear current world
     for entity in query.iter() {
         commands.entity(entity).despawn();
     }
 
+    // Manual deserialization to support absolute paths
+    let Ok(scene_ron) = std::fs::read_to_string(&path) else {
+        error!("Failed to read scene file: {:?}", path);
+        commands.remove_resource::<LoadRequest>();
+        return;
+    };
+
+    let mut deserializer = ron::Deserializer::from_str(&scene_ron).expect("Failed to create deserializer");
+    let type_registry = type_registry.read();
+    let scene_deserializer = bevy::scene::serde::SceneDeserializer {
+        type_registry: &type_registry,
+    };
+
+    let Ok(dynamic_scene) = serde::de::DeserializeSeed::deserialize(scene_deserializer, &mut deserializer) else {
+        error!("Failed to deserialize scene from {:?}", path);
+        commands.remove_resource::<LoadRequest>();
+        return;
+    };
+
+    // Add to assets to get a handle (needed for scene spawner)
+    let scene_handle = dynamic_scene_assets.add(dynamic_scene);
+
     // Spawn new scene
-    scene_spawner.spawn_dynamic(asset_server.load("scenes/saved_scene.scn.ron"));
+    scene_spawner.spawn_dynamic(scene_handle);
 
     commands.remove_resource::<LoadRequest>();
-    info!("Scene loaded");
+    scene_info.is_dirty = false;
+    info!("Scene loaded from {:?}", path);
+}
+
+pub fn update_window_title(
+    scene_info: Res<SceneInfo>,
+    mut window_query: Query<&mut Window, With<bevy::window::PrimaryWindow>>,
+) {
+    if !scene_info.is_changed() {
+        return;
+    }
+
+    if let Some(mut window) = window_query.iter_mut().next() {
+        let title_base = "Bevy Editor AI Test";
+        let path_str = if let Some(path) = &scene_info.file_path {
+            path.file_name().and_then(|n| n.to_str()).unwrap_or("Untitled")
+        } else {
+            "Untitled"
+        };
+
+        let dirty_marker = if scene_info.is_dirty { "*" } else { "" };
+
+        window.title = format!("{} - {}{}", title_base, path_str, dirty_marker);
+    }
 }
