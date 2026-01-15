@@ -170,6 +170,9 @@ pub fn save_to_file_system(
     saved_scene: Res<LastSavedScene>,
 ) {
     if saved_scene.is_changed() {
+        if saved_scene.0.is_empty() {
+            return;
+        }
         let _ = std::fs::create_dir_all("assets/scenes");
         let path = "assets/scenes/saved_scene.scn.ron";
         if let Ok(mut file) = File::create(path) {
