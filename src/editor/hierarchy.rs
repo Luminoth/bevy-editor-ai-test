@@ -1,7 +1,7 @@
 use bevy::prelude::*;
+use super::styles::*;
 use super::components::*;
 use super::resources::EditorState;
-use super::styles::*;
 
 pub fn update_hierarchy(
     mut current_state: ResMut<EditorState>,
@@ -10,6 +10,25 @@ pub fn update_hierarchy(
     for (interaction, row) in interactions.iter() {
         if *interaction == Interaction::Pressed {
             current_state.selected_entity = Some(row.entity);
+        }
+    }
+}
+type AddEntityInteractionQuery<'w, 's> = Query<'w, 's,
+    (&'static Interaction, &'static AddEntityButton),
+    (Changed<Interaction>, With<AddEntityButton>),
+>;
+
+pub fn handle_hierarchy_actions(
+    interaction_query: AddEntityInteractionQuery,
+    mut commands: Commands,
+) {
+    for (interaction, _) in interaction_query.iter() {
+        if *interaction == Interaction::Pressed {
+            commands.spawn((
+                Name::new("New Entity"),
+                Transform::default(),
+                Visibility::default(),
+            ));
         }
     }
 }
@@ -51,6 +70,28 @@ pub fn update_hierarchy_list(
                     TextFont::default(),
                     TextColor(super::styles::HEADER_COLOR),
                 ));
+
+                // Add Entity Button
+                p.spawn((
+                    Button,
+                    Node {
+                        margin: UiRect::left(Val::Px(10.0)),
+                        padding: UiRect::all(Val::Px(4.0)),
+                        border: UiRect::all(Val::Px(1.0)),
+                        ..default()
+                    },
+                    BackgroundColor(BUTTON_COLOR_NORMAL),
+                    AddEntityButton,
+                )).with_children(|btn| {
+                    btn.spawn((
+                        Text::new("+"),
+                        TextFont {
+                            font_size: 16.0,
+                             ..default()
+                        },
+                        TextColor(TEXT_COLOR),
+                    ));
+                });
 
               for entity in root_query.iter() {
                   p.spawn((

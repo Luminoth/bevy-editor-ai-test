@@ -37,3 +37,21 @@ pub enum MenuAction {
     Load,
     Exit,
 }
+
+#[derive(Component)]
+pub struct AddEntityButton;
+
+#[derive(Component)]
+pub struct DeleteEntityButton;
+
+#[derive(Component)]
+pub struct AddComponentButton;
+
+#[derive(Component)]
+pub struct RemoveComponentButton(pub String);
+
+#[derive(Component)]
+pub struct ComponentSearchInput;
+
+#[derive(Component)]
+pub struct ComponentAddButton(pub String);
