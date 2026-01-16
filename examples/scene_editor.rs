@@ -38,12 +38,5 @@ fn setup_scene(
         Transform::from_xyz(4.0, 8.0, 4.0),
     ));
 
-    // Camera used for Editor (since we didn't add the editor camera component to it yet, wait)
-    // Actually the editor plugin should spawn its own camera or we attach it here?
-    // Let's attach EditorCamera to a spawned camera here.
-    commands.spawn((
-        Camera3d::default(),
-        Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
-        editor::camera::EditorCamera::default(),
-    ));
+    // Editor Camera is now spawned by EditorPlugin
 }

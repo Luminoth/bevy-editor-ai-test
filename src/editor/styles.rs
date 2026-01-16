@@ -8,6 +8,7 @@ pub const BUTTON_COLOR_NORMAL: Color = Color::srgb(0.25, 0.25, 0.25);
 pub const BUTTON_COLOR_HOVER: Color = Color::srgb(0.35, 0.35, 0.35);
 pub const BUTTON_COLOR_PRESSED: Color = Color::srgb(0.45, 0.45, 0.45);
 pub const TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
+pub const RESIZE_HANDLE_COLOR: Color = Color::srgb(0.3, 0.3, 0.3);
 pub const SELECTED_COLOR: Color = Color::srgb(0.2, 0.4, 0.6);
 
 pub fn root_node_style() -> Node {
@@ -22,7 +23,11 @@ pub fn root_node_style() -> Node {
 
 pub fn sidebar_style() -> Node {
     Node {
-        width: Val::Px(250.0), // Fixed width sidebar
+        width: Val::Px(250.0),
+        min_width: Val::Px(250.0),
+        flex_basis: Val::Px(250.0),
+        flex_grow: 0.0,
+        flex_shrink: 0.0,
         height: Val::Percent(100.0),
         flex_direction: FlexDirection::Column,
         border: UiRect::all(Val::Px(1.0)),
@@ -33,7 +38,11 @@ pub fn sidebar_style() -> Node {
 
 pub fn viewport_style() -> Node {
     Node {
+        width: Val::Px(0.0), // Start from 0
+        min_width: Val::Px(0.0),
+        flex_basis: Val::Px(0.0),
         flex_grow: 1.0,
+        flex_shrink: 1.0, // Absorb overflow if necessary
         height: Val::Percent(100.0),
         ..default()
     }
@@ -87,6 +96,15 @@ pub fn dropdown_style() -> Node {
         width: Val::Px(100.0),
         flex_direction: FlexDirection::Column,
         border: UiRect::all(Val::Px(1.0)),
+        ..default()
+    }
+}
+
+pub fn resize_handle_style() -> Node {
+    Node {
+        width: Val::Px(8.0),
+        height: Val::Percent(100.0),
+        // cursor: CursorIcon::ColResize, // Cursor not supported on Node in this Bevy version
         ..default()
     }
 }

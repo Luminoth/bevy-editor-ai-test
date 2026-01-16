@@ -17,3 +17,6 @@ pub struct InspectorUiState {
     pub is_adding_component: bool,
     pub component_filter: String,
 }
+
+#[derive(Resource, Default)]
+pub struct IsResizing(pub bool);
