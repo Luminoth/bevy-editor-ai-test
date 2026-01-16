@@ -228,11 +228,33 @@ pub fn sync_camera_viewport(
         && size.x != 0.0
         && size.y != 0.0
     {
+        // Update aspect ratio
         projection.update(size.x, size.y);
+
+        // Implement "Constant Pixel Scale" behavior.
+        // We want objects to remain the same size in pixels regardless of viewport size.
+        // If Viewport Height changes, we change FOV to show more/less world vertically.
+        // If Viewport Width changes, standard aspect ratio handling (with fixed V-FOV) shows more/less horizontally.
+
+        // Reference: 60 degrees Vertical FOV at 600px height.
+        // tan(60/2) = tan(30) = 0.57735
+        // C = 0.57735 / 600.0 = 0.00096225
+
+        // const REFERENCE_FOV_Y: f32 = std::f32::consts::FRAC_PI_3; // 60 degrees - Unused
+        const REFERENCE_HEIGHT: f32 = 600.0;
+        const PIXEL_SCALE_FACTOR: f32 = (0.577350269) / REFERENCE_HEIGHT; // tan(30deg) / 600
+
+
+        if let Projection::Perspective(ref mut pers) = *projection {
+            // New Vertical FOV depends on current height
+            pers.fov = 2.0 * (PIXEL_SCALE_FACTOR * size.y).atan();
+        }
+
         let matrix = projection.get_clip_from_view();
         camera.computed.clip_from_view = matrix;
     }
 }
+
 
 
 // Spawn the necessary cameras for the editor
@@ -259,6 +281,7 @@ pub fn setup_editor_cameras(mut commands: Commands) {
         EditorCamera::default(),
     ));
 }
+
 
 #[cfg(test)]
 mod tests {

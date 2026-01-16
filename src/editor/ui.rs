@@ -3,6 +3,8 @@ use super::components::*;
 use super::styles::*;
 use crate::editor::resources::EditorConfig;
 use bevy::input::mouse::AccumulatedMouseMotion;
+use crate::editor::log::{LogPanel, LogPanelContent};
+
 
 pub fn setup_editor_ui(mut commands: Commands) {
     // 1. Spawn Inspector Panel (Detached initially to get ID)
@@ -31,7 +33,124 @@ pub fn setup_editor_ui(mut commands: Commands) {
           ));
     }).id();
 
-    // 2. Spawn Root Node (Overlay)
+    // 2. Spawn Log Panel (Detached)
+    let log_panel = commands.spawn((
+        log_panel_style(),
+        BackgroundColor(PANEL_COLOR),
+        ResizablePanel {
+            min_height: 50.0,
+            max_height: 500.0,
+            ..default()
+        },
+        LogPanel,
+        GlobalTransform::default(),
+        Transform::default(),
+        Visibility::default(),
+        InheritedVisibility::default(),
+        ViewVisibility::default(),
+    )).with_children(|p| {
+          p.spawn((
+              Text::new("Output"),
+              TextFont::default(),
+              TextColor(HEADER_COLOR),
+              Node {
+                  margin: UiRect::bottom(Val::Px(4.0)),
+                  ..default()
+              }
+          ));
+          p.spawn((
+              Node {
+                  flex_direction: FlexDirection::Column,
+                  width: Val::Percent(100.0),
+                  overflow: Overflow::clip(),
+                  flex_grow: 1.0,
+                  ..default()
+              },
+              LogPanelContent
+          ));
+    }).id();
+
+    // 3. Spawn Center Column (Detached)
+    let center_col = commands.spawn((
+        Node {
+             flex_direction: FlexDirection::Column,
+             flex_grow: 1.0,
+             height: Val::Percent(100.0),
+             min_width: Val::Px(0.0),
+             ..default()
+        },
+        GlobalTransform::default(),
+        Transform::default(),
+        Visibility::default(),
+        InheritedVisibility::default(),
+        ViewVisibility::default(),
+    )).id();
+
+
+    commands.entity(center_col).with_children(|center| {
+         // Viewport
+         center.spawn((
+             viewport_style(),
+             ViewportPanel,
+             GlobalTransform::default(),
+             Transform::default(),
+             Visibility::default(),
+             InheritedVisibility::default(),
+             ViewVisibility::default(),
+         ));
+         // Resize Handle Up
+         center.spawn((
+             resize_handle_horizontal_style(),
+             BackgroundColor(RESIZE_HANDLE_COLOR),
+             ResizeHandle {
+                 direction: ResizeDirection::Up,
+                 target_panel: log_panel,
+             },
+             Interaction::default(),
+             GlobalTransform::default(),
+             Transform::default(),
+             Visibility::default(),
+             InheritedVisibility::default(),
+             ViewVisibility::default(),
+         ));
+    });
+    commands.entity(center_col).add_child(log_panel);
+
+    // 4. Spawn Hierarchy (Detached)
+    let hierarchy = commands.spawn((
+         Node {
+             width: Val::Px(250.0),
+             min_width: Val::Px(250.0),
+             flex_shrink: 0.0,
+             height: Val::Percent(100.0),
+             border: UiRect::all(Val::Px(1.0)),
+             padding: UiRect::all(Val::Px(4.0)),
+             flex_direction: FlexDirection::Column,
+             ..default()
+         },
+         BackgroundColor(PANEL_COLOR),
+         HierarchyPanel,
+         ResizablePanel::default(),
+         GlobalTransform::default(),
+         Transform::default(),
+         Visibility::default(),
+         InheritedVisibility::default(),
+         ViewVisibility::default(),
+    )).with_children(|p| {
+         p.spawn((
+             Text::new("Hierarchy"),
+             TextFont::default(),
+             TextColor(HEADER_COLOR),
+             BackgroundColor(TEXT_COLOR)
+         ));
+         p.spawn(Node {
+             flex_direction: FlexDirection::Column,
+             width: Val::Percent(100.0),
+             ..default()
+         });
+    }).id();
+
+    // 5. Spawn Root Node (Overlay)
     let root = commands.spawn((
         Node {
              width: Val::Percent(100.0),
@@ -48,7 +167,7 @@ pub fn setup_editor_ui(mut commands: Commands) {
         Pickable::IGNORE, // Don't block picking for the scene unless hitting UI
     )).id();
 
-    // 3. Configure Root Children
+    // 6. Configure Root Children
     commands.entity(root).with_children(|parent| {
         // Menu Bar
         parent.spawn((
@@ -142,16 +261,7 @@ pub fn setup_editor_ui(mut commands: Commands) {
         });
     });
 
-
-    // 4. Attach Inspector to Main Content Area
-    // We need to access the main content area entity. We didn't capture it above.
-    // Let's modify the above to capture it?
-    // Or we can query for it, but better to capture.
-    // Since we used `parent.spawn`, we can capture the ID inside the closure, but we can't extract it easily without Cells.
-
-    // Easier way: Spawn Main Content Area detached first (like Inspector), then add to Root helpers?
-    // Let's spawn Main Content Area detached.
-
+    // 7. Attach Main Content
     let main_content = commands.spawn((
         Node {
              width: Val::Percent(100.0),
@@ -170,96 +280,48 @@ pub fn setup_editor_ui(mut commands: Commands) {
     // Add Main Content to Root
     commands.entity(root).add_child(main_content);
 
-    // Configure Main Content
+    // Add Children to Main Content in Order
+    commands.entity(main_content).add_child(hierarchy);
+
     commands.entity(main_content).with_children(|main_parent| {
-             // Left Panel (Hierarchy)
-             let hierarchy = main_parent.spawn((
-                 Node {
-                     width: Val::Px(250.0),
-                     min_width: Val::Px(250.0),
-                     flex_shrink: 0.0,
-                     height: Val::Percent(100.0),
-                     border: UiRect::all(Val::Px(1.0)),
-                     padding: UiRect::all(Val::Px(4.0)),
-                     flex_direction: FlexDirection::Column,
-                     ..default()
-                 },
-                 BackgroundColor(PANEL_COLOR),
-                 HierarchyPanel,
-                 ResizablePanel::default(),
-                 GlobalTransform::default(),
-                 Transform::default(),
-                 Visibility::default(),
-                 InheritedVisibility::default(),
-                 ViewVisibility::default(),
-             )).with_children(|p| {
-                 p.spawn((
-                     Text::new("Hierarchy"),
-                     TextFont::default(),
-                     TextColor(HEADER_COLOR),
-                     BackgroundColor(TEXT_COLOR) // Invert for header bg?
-                 ));
-                 // List container
-                 p.spawn(Node {
-                     flex_direction: FlexDirection::Column,
-                     width: Val::Percent(100.0),
-                     ..default()
-                 });
-             }).id();
-
-             // Resize Handle (Left -> Viewport)
-             main_parent.spawn((
-                 resize_handle_style(),
-                 BackgroundColor(RESIZE_HANDLE_COLOR),
-                 ResizeHandle {
-                     direction: ResizeDirection::Left,
-                     target_panel: hierarchy,
-                 },
-                 Interaction::default(),
-                 GlobalTransform::default(),
-                 Transform::default(),
-                 Visibility::default(),
-                 InheritedVisibility::default(),
-                 ViewVisibility::default(),
-             ));
-
-             // Viewport (Center)
-             main_parent.spawn((
-                 Node {
-                     width: Val::Px(0.0),
-                     min_width: Val::Px(0.0),
-                     flex_basis: Val::Px(0.0),
-                     flex_grow: 1.0,
-                     flex_shrink: 1.0,
-                     height: Val::Percent(100.0),
-                     ..default()
-                 },
-                 ViewportPanel,
-                 GlobalTransform::default(),
-                 Transform::default(),
-                 Visibility::default(),
-                 InheritedVisibility::default(),
-                 ViewVisibility::default(),
-             ));
-
-             // Resize Handle (Viewport -> Right)
-             main_parent.spawn((
-                 resize_handle_style(),
-                 BackgroundColor(RESIZE_HANDLE_COLOR),
-                 ResizeHandle {
-                     direction: ResizeDirection::Right,
-                     target_panel: inspector, // Uses the pre-spawned inspector ID
-                 },
-                 Interaction::default(),
-                 GlobalTransform::default(),
-                 Transform::default(),
-                 Visibility::default(),
-                 InheritedVisibility::default(),
-                 ViewVisibility::default(),
-             ));
+          // Resize Handle (Left -> Viewport)
+          main_parent.spawn((
+              resize_handle_style(),
+              BackgroundColor(RESIZE_HANDLE_COLOR),
+              ResizeHandle {
+                  direction: ResizeDirection::Left,
+                  target_panel: hierarchy,
+              },
+              Interaction::default(),
+              GlobalTransform::default(),
+              Transform::default(),
+              Visibility::default(),
+              InheritedVisibility::default(),
+              ViewVisibility::default(),
+          ));
     });
 
-    // Finally add inspector to main content (at the end)
+    commands.entity(main_content).add_child(center_col);
+
+    commands.entity(main_content).with_children(|main_parent| {
+          // Resize Handle (Viewport -> Right)
+          main_parent.spawn((
+              resize_handle_style(),
+              BackgroundColor(RESIZE_HANDLE_COLOR),
+              ResizeHandle {
+                  direction: ResizeDirection::Right,
+                  target_panel: inspector,
+              },
+              Interaction::default(),
+              GlobalTransform::default(),
+              Transform::default(),
+              Visibility::default(),
+              InheritedVisibility::default(),
+              ViewVisibility::default(),
+          ));
+    });
+
+    // Finally add inspector
     commands.entity(main_content).add_child(inspector);
 }
 
@@ -288,10 +350,19 @@ pub fn ui_resize_system(
     if resizing_state.is_none() {
         for (interaction, handle) in interactions.iter_mut() {
             if *interaction == Interaction::Pressed {
-                // Find initial width
+                // Find initial dimension
                 if let Ok((node, _)) = panels.get(handle.target_panel) {
-                     let initial_width = if let Val::Px(w) = node.width { w } else { 250.0 };
-                     *resizing_state = Some((handle.target_panel, handle.direction, initial_width));
+
+
+                     let initial_value = match handle.direction {
+                         ResizeDirection::Left | ResizeDirection::Right => {
+                             if let Val::Px(w) = node.width { w } else { 250.0 }
+                         }
+                         ResizeDirection::Up | ResizeDirection::Down => {
+                             if let Val::Px(h) = node.height { h } else { 150.0 }
+                         }
+                     };
+                     *resizing_state = Some((handle.target_panel, handle.direction, initial_value));
                      is_resizing.0 = true;
                 }
             }
@@ -302,24 +373,50 @@ pub fn ui_resize_system(
     if let Some((target, direction, _)) = *resizing_state {
         if mouse_button.pressed(MouseButton::Left) {
             let delta_x = resize_reader.delta.x;
+            let delta_y = resize_reader.delta.y; // Capture Y delta
 
-            if delta_x != 0.0
+            if (delta_x != 0.0 || delta_y != 0.0) // Check both
                 && let Ok((mut node, panel_config)) = panels.get_mut(target)
-                && let Val::Px(current_width) = node.width
             {
-                let new_width = match direction {
-                    ResizeDirection::Left => current_width + delta_x, // Expand hierarchy when dragging right
-                    ResizeDirection::Right => current_width - delta_x, // Expand inspector when dragging left
-                };
+                match direction {
+                     ResizeDirection::Left => {
+                         if let Val::Px(current_width) = node.width {
+                             let new_width = (current_width + delta_x).clamp(panel_config.min_width, panel_config.max_width);
+                             node.width = Val::Px(new_width);
+                         }
+                     }
+                     ResizeDirection::Right => {
+                         if let Val::Px(current_width) = node.width {
+                             let new_width = (current_width - delta_x).clamp(panel_config.min_width, panel_config.max_width);
+                             node.width = Val::Px(new_width);
+                         }
+                     }
+                     ResizeDirection::Up => {
+                         // Dragging Up (negative delta Y) should INCREASE height of a bottom panel.
+                         if let Val::Px(current_height) = node.height {
+                             // invert delta_y because up is negative but we want to increase size
+                             let new_height = (current_height - delta_y).clamp(panel_config.min_height, panel_config.max_height);
+                             node.height = Val::Px(new_height);
+                         }
+                     }
 
-                // Clamp
-                let clamped_width = new_width.clamp(panel_config.min_width, panel_config.max_width);
-                node.width = Val::Px(clamped_width);
+
+                     ResizeDirection::Down => {
+                         // But we don't have top panels yet. Assuming bottom panel for consistent logic?
+                         // If we had a top panel, dragging down (positive) would increase its height.
+                         // So new_height = current + delta.
+                         if let Val::Px(current_height) = node.height {
+                              let new_height = (current_height + delta_y).clamp(panel_config.min_height, panel_config.max_height);
+                              node.height = Val::Px(new_height);
+                         }
+                     }
+                };
             }
         } else {
              // Stop dragging
              *resizing_state = None;
              is_resizing.0 = false;
+             // Reset cursor? Bevy 0.15 doesn't expose cursor setting easily on Node yet.
         }
     }
 }

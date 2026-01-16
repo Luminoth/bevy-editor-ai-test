@@ -38,12 +38,12 @@ pub fn sidebar_style() -> Node {
 
 pub fn viewport_style() -> Node {
     Node {
-        width: Val::Px(0.0), // Start from 0
+        width: Val::Percent(100.0), // Fill column width
         min_width: Val::Px(0.0),
         flex_basis: Val::Px(0.0),
         flex_grow: 1.0,
-        flex_shrink: 1.0, // Absorb overflow if necessary
-        height: Val::Percent(100.0),
+        flex_shrink: 1.0,
+        // height: Val::Percent(100.0), // Removed to let flex_grow control height in column
         ..default()
     }
 }
@@ -106,5 +106,31 @@ pub fn resize_handle_style() -> Node {
         height: Val::Percent(100.0),
         // cursor: CursorIcon::ColResize, // Cursor not supported on Node in this Bevy version
         ..default()
+    }
+}
+
+pub fn log_panel_style() -> Node {
+    Node {
+        width: Val::Percent(100.0),
+        height: Val::Px(150.0), // Initial height
+        min_height: Val::Px(50.0),
+        // flex_basis: Val::Px(150.0), // Removed to allow height resizing to work
+        flex_grow: 0.0,
+        flex_shrink: 0.0,
+
+        flex_direction: FlexDirection::Column,
+        border: UiRect::top(Val::Px(1.0)),
+        padding: UiRect::all(Val::Px(4.0)),
+        overflow: Overflow::clip(), // Clip content
+        ..default()
+    }
+}
+
+pub fn resize_handle_horizontal_style() -> Node {
+    Node {
+         width: Val::Percent(100.0),
+         height: Val::Px(8.0),
+         flex_shrink: 0.0, // Prevent handle from collapsing
+         ..default()
     }
 }

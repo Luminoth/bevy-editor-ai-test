@@ -10,21 +10,30 @@ pub mod styles;
 pub mod ui;
 pub mod input;
 pub mod actions;
+pub mod log;
 
 use resources::{EditorConfig, EditorState, InspectorUiState};
+use log::EditorLogs;
 
 pub struct EditorPlugin;
 
 impl Plugin for EditorPlugin {
     fn build(&self, app: &mut App) {
+        // If the user hasn't added the LogPlugin (e.g. via DefaultPlugins), add it ourselves with our config.
+        if !app.is_plugin_added::<bevy::log::LogPlugin>() {
+            app.add_plugins(log::log_plugin());
+        }
+
         app.init_resource::<EditorState>()
            .init_resource::<EditorConfig>()
+
            .init_resource::<InspectorUiState>()
            .init_resource::<resources::IsResizing>()
+           .init_resource::<EditorLogs>()
            .add_systems(Startup, (
                 ui::setup_editor_ui,
                 camera::setup_editor_cameras,
-           ))
+            ))
            .add_systems(Update, (
                 camera::editor_camera_controls,
                 ui::toggle_editor,
@@ -42,6 +51,8 @@ impl Plugin for EditorPlugin {
                 actions::handle_add_component_toggle,
                 actions::handle_remove_component,
                 actions::handle_add_component_confirm,
+                log::transfer_logs_system,
+                log::log_panel_ui_system,
            ))
            .init_resource::<menu::LastSavedScene>()
            .init_resource::<menu::SceneInfo>()

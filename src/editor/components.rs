@@ -69,6 +69,8 @@ pub struct PropertyInput {
 pub enum ResizeDirection {
     Left,
     Right,
+    Up,
+    Down,
 }
 
 #[derive(Component)]
@@ -81,6 +83,8 @@ pub struct ResizeHandle {
 pub struct ResizablePanel {
      pub min_width: f32,
      pub max_width: f32,
+     pub min_height: f32,
+     pub max_height: f32,
 }
 
 impl Default for ResizablePanel {
@@ -88,6 +92,8 @@ impl Default for ResizablePanel {
         Self {
             min_width: 150.0,
             max_width: 500.0,
+            min_height: 50.0,
+            max_height: 500.0,
         }
     }
 }

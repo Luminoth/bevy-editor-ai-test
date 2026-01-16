@@ -5,11 +5,17 @@ use bevy_editor_ai_test::editor;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        // We use .set() here to configure the LogPlugin before it builds.
+        // Bevy's LogPlugin initializes the global `tracing` subscriber immediately.
+        // The `tracing` crate does not support replacing the global subscriber once initialized,
+        // so we cannot "hook into" it later from the EditorPlugin.
+        .add_plugins(DefaultPlugins.set(editor::log::log_plugin()))
+
         .add_plugins(editor::EditorPlugin)
         .add_systems(Startup, setup_scene)
         .run();
 }
+
 
 fn setup_scene(
     mut commands: Commands,
