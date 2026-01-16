@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy::input::mouse::{AccumulatedMouseMotion, AccumulatedMouseScroll};
 use crate::editor::resources::IsResizing;
+use bevy::ecs::system::SystemParam;
 
 #[derive(Component)]
 pub struct EditorCamera {
@@ -17,17 +18,22 @@ impl Default for EditorCamera {
     }
 }
 
+#[derive(SystemParam)]
+pub struct EditorInput<'w> {
+    keys: Res<'w, ButtonInput<KeyCode>>,
+    mouse: Res<'w, ButtonInput<MouseButton>>,
+    mouse_motion: Res<'w, AccumulatedMouseMotion>,
+    mouse_scroll: Res<'w, AccumulatedMouseScroll>,
+    is_resizing: Res<'w, IsResizing>,
+}
+
 pub fn editor_camera_controls(
     mut windows: Query<&mut Window>,
     mut query: Query<(&EditorCamera, &mut Transform)>,
-    keys: Res<ButtonInput<KeyCode>>,
-    mouse: Res<ButtonInput<MouseButton>>,
-    mouse_motion: Res<AccumulatedMouseMotion>,
-    mouse_scroll: Res<AccumulatedMouseScroll>,
+    input: EditorInput,
     time: Res<Time>,
-    is_resizing: Res<IsResizing>,
 ) {
-    if is_resizing.0 {
+    if input.is_resizing.0 {
         return;
     }
 
@@ -35,8 +41,8 @@ pub fn editor_camera_controls(
         return;
     };
 
-    let rmb_held = mouse.pressed(MouseButton::Right);
-    let lmb_held = mouse.pressed(MouseButton::Left);
+    let rmb_held = input.mouse.pressed(MouseButton::Right);
+    let lmb_held = input.mouse.pressed(MouseButton::Left);
 
     // Cursor handling (commented out due to API issues)
     // if rmb_held {
@@ -51,7 +57,7 @@ pub fn editor_camera_controls(
         // 1. Fly Controls (RMB Held)
         if rmb_held {
             // Rotation
-            let rotation_move = mouse_motion.delta;
+            let rotation_move = input.mouse_motion.delta;
 
             if rotation_move.length_squared() > 0.0 {
                 let (mut yaw, mut pitch, _roll) = transform.rotation.to_euler(EulerRot::YXZ);
@@ -70,22 +76,22 @@ pub fn editor_camera_controls(
             let local_right = transform.right();
             let local_up = transform.up();
 
-            if keys.pressed(KeyCode::KeyW) {
+            if input.keys.pressed(KeyCode::KeyW) {
                 velocity += *local_forward;
             }
-            if keys.pressed(KeyCode::KeyS) {
+            if input.keys.pressed(KeyCode::KeyS) {
                 velocity -= *local_forward;
             }
-            if keys.pressed(KeyCode::KeyA) {
+            if input.keys.pressed(KeyCode::KeyA) {
                 velocity -= *local_right;
             }
-            if keys.pressed(KeyCode::KeyD) {
+            if input.keys.pressed(KeyCode::KeyD) {
                 velocity += *local_right;
             }
-            if keys.pressed(KeyCode::KeyE) {
+            if input.keys.pressed(KeyCode::KeyE) {
                 velocity += *local_up;
             }
-            if keys.pressed(KeyCode::KeyQ) {
+            if input.keys.pressed(KeyCode::KeyQ) {
                 velocity -= *local_up;
             }
 
@@ -96,7 +102,7 @@ pub fn editor_camera_controls(
 
             // Apply speed
             let mut current_speed = camera.speed;
-            if keys.pressed(KeyCode::ShiftLeft) || keys.pressed(KeyCode::ShiftRight) {
+            if input.keys.pressed(KeyCode::ShiftLeft) || input.keys.pressed(KeyCode::ShiftRight) {
                 current_speed *= 2.0;
             }
 
@@ -108,7 +114,7 @@ pub fn editor_camera_controls(
             // "Pulling the world" style:
             // Drag Left (negative X) -> Camera moves Right (positive local X)
             // Drag Up (positive Y) -> Camera moves Down (negative local Y)
-            let pan_move = mouse_motion.delta;
+            let pan_move = input.mouse_motion.delta;
 
             if pan_move.length_squared() > 0.0 {
                 // Scaling factor for pan
@@ -123,10 +129,10 @@ pub fn editor_camera_controls(
 
         // 3. Zoom (Always Active)
         // Simple zoom: move forward/back
-        let scroll = mouse_scroll.delta.y;
+        let scroll = input.mouse_scroll.delta.y;
         if scroll != 0.0 {
             // Zoom speed multiplier
-            let zoom_speed = 2.0;
+            let _zoom_speed = 2.0;
         }
     }
 }
@@ -249,7 +255,7 @@ pub fn setup_editor_cameras(mut commands: Commands) {
     // 1. UI Camera (Renders the Editor UI)
     // Order 1 ensures it draws ON TOP of the 3D scene.
     commands.spawn((
-        Camera2d::default(),
+        Camera2d,
         Camera {
             order: 1,
             ..default()

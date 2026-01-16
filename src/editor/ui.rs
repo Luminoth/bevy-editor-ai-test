@@ -283,10 +283,7 @@ pub fn ui_resize_system(
     mouse_button: Res<ButtonInput<MouseButton>>,
     mut resizing_state: Local<Option<(Entity, ResizeDirection, f32)>>, // Track dragging state
     mut is_resizing: ResMut<crate::editor::resources::IsResizing>,
-    windows: Query<&Window>,
 ) {
-    let window = windows.single();
-
     // Check for start dragging
     if resizing_state.is_none() {
         for (interaction, handle) in interactions.iter_mut() {
@@ -306,19 +303,18 @@ pub fn ui_resize_system(
         if mouse_button.pressed(MouseButton::Left) {
             let delta_x = resize_reader.delta.x;
 
-            if delta_x != 0.0 {
-                if let Ok((mut node, panel_config)) = panels.get_mut(target) {
-                    if let Val::Px(current_width) = node.width {
-                        let new_width = match direction {
-                            ResizeDirection::Left => current_width + delta_x, // Expand hierarchy when dragging right
-                            ResizeDirection::Right => current_width - delta_x, // Expand inspector when dragging left
-                        };
+            if delta_x != 0.0
+                && let Ok((mut node, panel_config)) = panels.get_mut(target)
+                && let Val::Px(current_width) = node.width
+            {
+                let new_width = match direction {
+                    ResizeDirection::Left => current_width + delta_x, // Expand hierarchy when dragging right
+                    ResizeDirection::Right => current_width - delta_x, // Expand inspector when dragging left
+                };
 
-                        // Clamp
-                        let clamped_width = new_width.clamp(panel_config.min_width, panel_config.max_width);
-                        node.width = Val::Px(clamped_width);
-                    }
-                }
+                // Clamp
+                let clamped_width = new_width.clamp(panel_config.min_width, panel_config.max_width);
+                node.width = Val::Px(clamped_width);
             }
         } else {
              // Stop dragging
@@ -332,12 +328,12 @@ pub fn ui_cursor_system(
     mut windows: Query<&mut Window>,
     resize_handles: Query<&Interaction, With<ResizeHandle>>,
 ) {
-    let Some(mut window) = windows.iter_mut().next() else { return };
+    let Some(_window) = windows.iter_mut().next() else { return };
 
-    let mut any_interacting = false;
+    let mut _any_interacting = false;
     for interaction in resize_handles.iter() {
         if matches!(interaction, Interaction::Hovered | Interaction::Pressed) {
-            any_interacting = true;
+            _any_interacting = true;
             break;
         }
     }
