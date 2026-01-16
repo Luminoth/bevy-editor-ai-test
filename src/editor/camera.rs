@@ -117,8 +117,8 @@ pub fn editor_camera_controls(
             let pan_move = input.mouse_motion.delta;
 
             if pan_move.length_squared() > 0.0 {
-                // Scaling factor for pan
-                let pan_sensitivity = camera.speed * 0.002;
+                // Scaling factor for pan - Reduced from 0.002 to 0.001 for slower panning
+                let pan_sensitivity = camera.speed * 0.001;
                 let local_right = transform.right();
                 let local_up = transform.up();
 
@@ -132,7 +132,9 @@ pub fn editor_camera_controls(
         let scroll = input.mouse_scroll.delta.y;
         if scroll != 0.0 {
             // Zoom speed multiplier
-            let _zoom_speed = 2.0;
+            let zoom_speed = 2.0;
+            let forward = transform.forward();
+            transform.translation += *forward * scroll * zoom_speed;
         }
     }
 }
@@ -142,11 +144,19 @@ use crate::editor::components::ViewportPanel;
 // use bevy::render::camera::Viewport;
 
 pub fn sync_camera_viewport(
-    mut camera_q: Query<&mut Camera, With<EditorCamera>>,
+    mut camera_q: Query<(&mut Camera, &mut bevy::prelude::Projection), With<EditorCamera>>,
     viewport_q: Query<(&GlobalTransform, &ComputedNode), With<ViewportPanel>>,
     windows: Query<&Window>, // Relaxed query
 ) {
-    let Some(mut camera) = camera_q.iter_mut().next() else {
+    // The `CameraProjection` trait is required to call `update` and `get_clip_from_view`.
+    // Since we cannot easily import it (private/re-exported issues), we will query for `Projection`
+    // and use it knowing that `Projection` implements `CameraProjection`.
+    // However, to satisfy the compiler about the method existence, we might need the trait in scope.
+    // Bevy seems to expose `bevy::render::camera::CameraProjection` but previous attempts failed.
+    // If the methods are inherent on `Projection` implementation, we don't need the trait.
+    // Let's assume they are inherent or available via `bevy::prelude`.
+
+    let Some((mut camera, mut projection)) = camera_q.iter_mut().next() else {
         return;
     };
     let Some((global_transform, computed_node)) = viewport_q.iter().next() else {
@@ -158,37 +168,6 @@ pub fn sync_camera_viewport(
 
     let transform = global_transform.compute_transform();
     let translation = transform.translation;
-    // The node positions are center-relative in Bevy UI layout usually?
-    // Actually GlobalTransform of a UI node is the top-left corner in World Space?
-    // Wait, Bevy UI GlobalTransform translation is the center of the node in World Space?
-    // Let's verify standard Bevy behavior.
-    // In Bevy 0.13+, UI GlobalTransform translation is the center.
-    // However, we need the bottom-left corner for the viewport physical position (if y goes up) or top-left (if y goes down).
-    // Bevy's camera viewport uses physical coordinates where (0,0) is bottom-left (OpenGL style) or top-left?
-    // Bevy Window coordinates: (0,0) is Top-Left. Y goes Down.
-    // Bevy Camera Viewport `physical_position`: (0,0) is Top-Left?
-    // Documentation says: "The physical position of the viewport within the render target."
-    // Let's assume standard window coordinates (Top-Left origin).
-
-    // Let's get the top-left corner of the node.
-    // `translation` is the center. `computed_node.size()` gives the full size.
-    // Node center X = translation.x
-    // Node center Y = translation.y
-
-    // But wait, are UI GlobalTransforms in window configuration?
-    // Yes, they are in "UI Space" which is usually pixel coordinates relative to window, but Z is stack index.
-    // Origin is center of screen or center of window?
-    // In Bevy UI, the root node covers the window.
-    // Actually, let's look at `GlobalTransform`.
-    // It seems safe to rely on `Node` layout calculation if we can get the screen-space rect.
-
-    // A common way to get screen rect for UI:
-    // let position = global_transform.translation().truncate();
-    // let size = computed_node.size();
-    // let half_size = size / 2.0;
-    // let min = position - half_size;
-    // let max = position + half_size;
-    // This assumes translation is the center.
 
     let size = computed_node.size();
     if size == Vec2::ZERO {
@@ -205,8 +184,6 @@ pub fn sync_camera_viewport(
     let position_center_world = translation.truncate();
 
     // 2. Convert to Logical Screen Space (0,0 is Bottom-Left of window)
-    // Bevy World Space: X Right, Y Up. Origin Center.
-    // Screen Space: X Right, Y Up. Origin Bottom-Left.
     let window_logical_size = Vec2::new(window.width(), window.height());
     let half_window = window_logical_size / 2.0;
 
@@ -225,7 +202,6 @@ pub fn sync_camera_viewport(
     let max_bound = physical_position + physical_size;
 
     let clamped_size = if max_bound.x > window_physical_size.x || max_bound.y > window_physical_size.y {
-         // debug!("Viewport out of bounds! Pos: {:?}, Size: {:?}, Window: {:?}. Clamping.", physical_position, physical_size, window_physical_size);
          let available_x = window_physical_size.x.saturating_sub(physical_position.x);
          let available_y = window_physical_size.y.saturating_sub(physical_position.y);
          UVec2::new(physical_size.x.min(available_x), physical_size.y.min(available_y))
@@ -240,15 +216,24 @@ pub fn sync_camera_viewport(
 
     camera.is_active = true;
 
-    camera.is_active = true;
-
     // Use take().unwrap_or_default() to avoid naming the private Viewport struct
     let mut viewport = camera.viewport.take().unwrap_or_default();
     viewport.physical_position = physical_position;
     viewport.physical_size = clamped_size;
 
     camera.viewport = Some(viewport);
+
+    // Manually update projection to avoid one-frame lag
+    if let Some(size) = camera.logical_viewport_size()
+        && size.x != 0.0
+        && size.y != 0.0
+    {
+        projection.update(size.x, size.y);
+        let matrix = projection.get_clip_from_view();
+        camera.computed.clip_from_view = matrix;
+    }
 }
+
 
 // Spawn the necessary cameras for the editor
 pub fn setup_editor_cameras(mut commands: Commands) {
@@ -278,7 +263,7 @@ pub fn setup_editor_cameras(mut commands: Commands) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bevy::prelude::*;
+
     use bevy::window::PrimaryWindow;
     use bevy::ui::{ComputedNode, Node};
 
